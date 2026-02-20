@@ -26,14 +26,19 @@ def down_ocorrencias(contrato: str):
         sftp = paramiko.SFTPClient.from_transport(transport)
 
         try:
-            arquivos = sftp.listdir(pasta_remota)
-        except FileNotFoundError:
+            arquivos = [
+                arq for arq in sftp.listdir(pasta_remota)
+                if arq not in ('.', '..')]
+            
+        except OSError:
+
             print(f"Pasta do contrato {contrato} não encontrada.")
             return
 
         if not arquivos:
             print(f"Pasta do contrato {contrato} existe, mas está vazia.")
             return
+
 
         zip_path = DOWNLOADS_DIR / f"{contrato}.zip"
 
