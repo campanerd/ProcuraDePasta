@@ -6,10 +6,10 @@ from pathlib import Path
 
 BASE_REMOTA = "/sftp-assessoria-prd/Fortes-Assessoria/Cobaas/Enviados/Documentos"
 
-def executar_contrato(contrato: str):
+
+def executar_contrato(contrato: str) -> str:
     if not contrato:
-        print("Contrato não informado.")
-        return
+        return "Contrato não informado."
 
     pasta_remota = f"{BASE_REMOTA}/{contrato}"
 
@@ -26,19 +26,18 @@ def executar_contrato(contrato: str):
         conteudo = sftp.listdir(pasta_remota)
 
         if not conteudo:
-            print(f"Pasta do contrato {contrato} está vazia.")
-            return
-
-        print("Conteúdo encontrado. Baixando...")
+            return f"Pasta do contrato {contrato} existe, mas está vazia."
 
         baixar_recursivo(sftp, pasta_remota, pasta_local)
         zipar_pasta(pasta_local, zip_nome)
 
-        print(f"Contrato {contrato} baixado com sucesso em {zip_nome}")
+        return f"Contrato {contrato} baixado com sucesso.\nArquivo: {zip_nome}"
+
+    except FileNotFoundError:
+        return f"Pasta do contrato {contrato} não encontrada."
 
     except Exception as e:
-        print(f"Erro ao processar contrato {contrato}")
-        print(e)
+        return f"Erro ao processar contrato {contrato}:\n{e}"
 
     finally:
         sftp.close()
@@ -50,7 +49,8 @@ def executar_contrato(contrato: str):
 
 def main():
     contrato = input("Qual o contrato? ").strip()
-    executar_contrato(contrato)
+    resultado = executar_contrato(contrato)
+    print(resultado)
 
 
 if __name__ == "__main__":
