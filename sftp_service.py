@@ -1,72 +1,17 @@
-import paramiko
 import os
-from pathlib import Path
-from zipfile import ZipFile
-import stat
+import paramiko
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def down_ocorrencias(contrato: str):
-    BASE_DIR = Path(__file__).resolve().parent
+def conectar_sftp():
+    host = os.getenv("SFTP_HOST")
+    user = os.getenv("SFTP_USER")
+    password = os.getenv("SFTP_PASS")
+    port = int(os.getenv("SFTP_PORT", 22))
 
-    DOWNLOADS_DIR = BASE_DIR / "src" / "files"
-    DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    transport = paramiko.Transport((host, port))
+    transport.connect(username=user, password=password)
+    sftp = paramiko.SFTPClient.from_transport(transport)
 
-    SFTP_HOST = os.getenv("SFTP_HOST")
-    SFTP_USER = os.getenv("SFTP_USER")
-    SFTP_PASS = os.getenv("SFTP_PASS")
-    SFTP_PORT = int(os.getenv("SFTP_PORT", 22))
-
-    CAMINHO_BASE = os.getenv("SFTP_CAMINHO")
-    pasta_remota = f"{CAMINHO_BASE}/{contrato}"
-
-    try:
-        # conexão
-        transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
-        transport.connect(username=SFTP_USER, password=SFTP_PASS)
-        sftp = paramiko.SFTPClient.from_transport(transport)
-
-        # lista SOMENTE arquivos
-        arquivos = []
-        for item in sftp.listdir_attr(pasta_remota):
-            if stat.S_ISREG(item.st_mode):
-                arquivos.append(item.filename)
-
-        if not arquivos:
-            print(f"Pasta do contrato {contrato} existe, mas não possui arquivos.")
-            return
-
-        # cria zip
-        zip_path = DOWNLOADS_DIR / f"{contrato}.zip"
-
-        with ZipFile(zip_path, "w") as zipf:
-            for nome_arquivo in arquivos:
-                remoto = f"{pasta_remota}/{nome_arquivo}"
-                local = DOWNLOADS_DIR / nome_arquivo
-
-                sftp.get(remoto, local)
-                zipf.write(local, arcname=nome_arquivo)
-                local.unlink()
-
-        print(f"Contrato {contrato} baixado com sucesso em {zip_path}")
-
-        sftp.close()
-        transport.close()
-
-    except IOError as e:
-        print(f"Pasta do contrato {contrato} não encontrada.")
-        print("Erro:", e)
-
-    except Exception as e:
-        print("Erro ao processar o download via SFTP")
-        print(e)
-
-
-if __name__ == "__main__":
-    contrato = input("Qual o contrato? ").strip()
-
-    if not contrato:
-        print("Contrato não informado.")
-    else:
-        down_ocorrencias(contrato)
+    return sftp, transport
