@@ -2,6 +2,7 @@ import paramiko
 import os
 from pathlib import Path
 from zipfile import ZipFile
+import stat
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,25 +22,22 @@ def down_ocorrencias(contrato: str):
     pasta_remota = f"{CAMINHO_BASE}/{contrato}"
 
     try:
+        # conexão
         transport = paramiko.Transport((SFTP_HOST, SFTP_PORT))
         transport.connect(username=SFTP_USER, password=SFTP_PASS)
         sftp = paramiko.SFTPClient.from_transport(transport)
 
-        try:
-            arquivos = [
-                arq for arq in sftp.listdir(pasta_remota)
-                if arq not in ('.', '..')]
-            
-        except OSError:
-
-            print(f"Pasta do contrato {contrato} não encontrada.")
-            return
+        # lista SOMENTE arquivos
+        arquivos = []
+        for item in sftp.listdir_attr(pasta_remota):
+            if stat.S_ISREG(item.st_mode):
+                arquivos.append(item.filename)
 
         if not arquivos:
-            print(f"Pasta do contrato {contrato} existe, mas está vazia.")
+            print(f"Pasta do contrato {contrato} existe, mas não possui arquivos.")
             return
 
-
+        # cria zip
         zip_path = DOWNLOADS_DIR / f"{contrato}.zip"
 
         with ZipFile(zip_path, "w") as zipf:
@@ -55,6 +53,10 @@ def down_ocorrencias(contrato: str):
 
         sftp.close()
         transport.close()
+
+    except IOError as e:
+        print(f"Pasta do contrato {contrato} não encontrada.")
+        print("Erro:", e)
 
     except Exception as e:
         print("Erro ao processar o download via SFTP")
