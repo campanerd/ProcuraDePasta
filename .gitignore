@@ -6,3 +6,9 @@ venv/
 .env
 __pycache__
 files
+build
+dist
+downloads
+capa.ico
+main.spec
+app.spec
