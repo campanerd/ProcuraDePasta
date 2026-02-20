@@ -6,17 +6,15 @@ from pathlib import Path
 
 BASE_REMOTA = "/sftp-assessoria-prd/Fortes-Assessoria/Cobaas/Enviados/Documentos"
 
-def main():
-    contrato = input("Qual o contrato? ").strip()
-
+def executar_contrato(contrato: str):
     if not contrato:
         print("Contrato não informado.")
         return
 
     pasta_remota = f"{BASE_REMOTA}/{contrato}"
-    
+
     BASE_DIR = Path(__file__).resolve().parent
-    DOWNLOADS_DIR = BASE_DIR / "src" / "files"
+    DOWNLOADS_DIR = BASE_DIR / "src" / "downloads"
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
     pasta_local = BASE_DIR / f"temp_{contrato}"
@@ -46,8 +44,13 @@ def main():
         sftp.close()
         transport.close()
 
-        if os.path.exists(pasta_local):
+        if pasta_local.exists():
             shutil.rmtree(pasta_local)
+
+
+def main():
+    contrato = input("Qual o contrato? ").strip()
+    executar_contrato(contrato)
 
 
 if __name__ == "__main__":
