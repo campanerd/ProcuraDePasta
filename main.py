@@ -2,6 +2,7 @@ import os
 import shutil
 from sftp_service import conectar_sftp
 from zipar_file import baixar_recursivo, zipar_pasta
+from pathlib import Path
 
 BASE_REMOTA = "/sftp-assessoria-prd/Fortes-Assessoria/Cobaas/Enviados/Documentos"
 
@@ -13,8 +14,13 @@ def main():
         return
 
     pasta_remota = f"{BASE_REMOTA}/{contrato}"
-    pasta_local = f"./temp_{contrato}"
-    zip_nome = f"{contrato}.zip"
+    
+    BASE_DIR = Path(__file__).resolve().parent
+    DOWNLOADS_DIR = BASE_DIR / "src" / "files"
+    DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+    pasta_local = BASE_DIR / f"temp_{contrato}"
+    zip_nome = DOWNLOADS_DIR / f"{contrato}.zip"
 
     sftp, transport = conectar_sftp()
 
