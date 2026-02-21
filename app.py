@@ -49,4 +49,6 @@ status = tk.Label(
 )
 status.pack(pady=10)
 
+tk.Label(root, text="Desenvolvido por Davi Campaner").pack(side="bottom", pady=5)
+
 root.mainloop()
