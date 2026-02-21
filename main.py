@@ -13,7 +13,6 @@ def executar_contrato(contrato: str) -> str:
         return "Contrato não informado."
 
     pasta_remota = f"{BASE_REMOTA}/{contrato}"
-
     DOWNLOADS_DIR = Path.home() / "Downloads"
     DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -23,18 +22,16 @@ def executar_contrato(contrato: str) -> str:
     sftp, transport = conectar_sftp()
 
     try:
-        conteudo = sftp.listdir(pasta_remota)
+        qtd_arquivos = baixar_recursivo(sftp, pasta_remota, pasta_local)
 
-        if not conteudo:
-            return f"Pasta do contrato {contrato} existe, mas está vazia."
+        if qtd_arquivos == 0:
+            return f"Erro: O contrato {contrato} não foi encontrado ou não possui arquivos no servidor."
 
-        baixar_recursivo(sftp, pasta_remota, pasta_local)
-        zipar_pasta(pasta_local, zip_nome)
-
-        return f"Contrato {contrato} baixado com sucesso.\nArquivo: {zip_nome}"
-
-    except FileNotFoundError:
-        return f"Pasta do contrato {contrato} não encontrada."
+        # 3. Só tenta zipar se houve sucesso no download
+        if zipar_pasta(pasta_local, zip_nome):
+            return f"Contrato {contrato} baixado com sucesso!\nTotal de arquivos: {qtd_arquivos}\nSalvo em: {zip_nome}"
+        else:
+            return f"Erro ao gerar o arquivo ZIP para o contrato {contrato}."
 
     except Exception as e:
         return f"Erro ao processar contrato {contrato}:\n{e}"
@@ -42,7 +39,6 @@ def executar_contrato(contrato: str) -> str:
     finally:
         sftp.close()
         transport.close()
-
         if pasta_local.exists():
             shutil.rmtree(pasta_local)
 
