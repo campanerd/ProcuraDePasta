@@ -3,14 +3,9 @@ import stat
 import zipfile
 
 def baixar_recursivo(sftp, remoto, local):
-    arquivos_baixados = 0
+    arquivos_contagem = 0
+    itens = sftp.listdir_attr(remoto)
     
-    # Tentamos listar o conteúdo primeiro
-    try:
-        itens = sftp.listdir_attr(remoto)
-    except IOError:
-        return 0 # Pasta não existe ou erro de permissão
-
     if itens:
         os.makedirs(local, exist_ok=True)
 
@@ -19,13 +14,12 @@ def baixar_recursivo(sftp, remoto, local):
         local_item = os.path.join(local, item.filename)
 
         if stat.S_ISDIR(item.st_mode):
-            # Soma os arquivos baixados nas subpastas
-            arquivos_baixados += baixar_recursivo(sftp, remoto_item, local_item)
+            arquivos_contagem += baixar_recursivo(sftp, remoto_item, local_item)
         else:
             sftp.get(remoto_item, local_item)
-            arquivos_baixados += 1
+            arquivos_contagem += 1
             
-    return arquivos_baixados
+    return arquivos_contagem
 
 def zipar_pasta(pasta, zip_nome):
     # Só tenta zipar se a pasta local realmente existir e tiver algo
