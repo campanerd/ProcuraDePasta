@@ -1,7 +1,8 @@
 import os
 import shutil
 from conectsftp_service import conectar_sftp
-from zipar_file import baixar_recursivo, zipar_pasta
+from zipar_file import zipar_pasta
+from down_service import baixar_recursivo
 import tempfile
 from pathlib import Path
 
