@@ -1,17 +1,18 @@
 import os
 import shutil
-from conectsftp_service import conectar_sftp
-from zipar_file import zipar_pasta
-from down_service import baixar_recursivo
 import tempfile
 from pathlib import Path
 
+from conectsftp_service import conectar_sftp
+from zipar_file import zipar_pasta
+from down_service import baixar_recursivo
+
 BASE_REMOTA = "/sftp-assessoria-prd/Fortes-Assessoria/Cobaas/Enviados/Documentos"
 
-def encontrar_pasta_contrato(sftp, base_remota, termo_busca):
-    pastas = sftp.listdir_attr(base_remota)
-    for attr in pastas:
-        if termo_busca.lower() in attr.filename.lower():
+
+def encontrar_pasta_por_prefixo(sftp, base_remota, contrato):
+    for attr in sftp.listdir_iter(base_remota):
+        if attr.filename.startswith(contrato):
             return f"{base_remota}/{attr.filename}"
     return None
 
@@ -21,7 +22,6 @@ def executar_contrato(contrato: str) -> str:
 
     DOWNLOADS_DIR = Path.home() / "Downloads"
     pasta_local = Path(tempfile.gettempdir()) / f"temp_{contrato}"
-    zip_nome = DOWNLOADS_DIR / f"{contrato}.zip"
 
     sftp = None
     transport = None
@@ -29,9 +29,12 @@ def executar_contrato(contrato: str) -> str:
     try:
         sftp, transport = conectar_sftp()
 
-        pasta_remota = encontrar_pasta_contrato(sftp, BASE_REMOTA, contrato)
+        pasta_remota = encontrar_pasta_por_prefixo(sftp, BASE_REMOTA, contrato)
         if not pasta_remota:
-            return f"Nenhuma pasta encontrada contendo: {contrato}"
+            return f"Nenhuma pasta encontrada iniciando com: {contrato}"
+
+        nome_pasta = pasta_remota.split("/")[-1]
+        zip_nome = DOWNLOADS_DIR / f"{nome_pasta}.zip"
 
         qtd_arquivos = baixar_recursivo(sftp, pasta_remota, pasta_local)
 
@@ -39,7 +42,11 @@ def executar_contrato(contrato: str) -> str:
             return f"A pasta do contrato {contrato} existe, mas está vazia (sem arquivos)."
 
         if zipar_pasta(pasta_local, zip_nome):
-            return f"Contrato {contrato} baixado com sucesso!\nTotal de arquivos: {qtd_arquivos}\nSalvo em: {zip_nome}"
+            return (
+                f"Contrato {contrato} baixado com sucesso!\n"
+                f"Total de arquivos: {qtd_arquivos}\n"
+                f"Salvo em: {zip_nome}"
+            )
 
         return "Erro ao gerar o arquivo ZIP."
 
@@ -54,10 +61,12 @@ def executar_contrato(contrato: str) -> str:
         if pasta_local.exists():
             shutil.rmtree(pasta_local)
 
+
 def main():
     contrato = input("Qual o contrato? ").strip()
     resultado = executar_contrato(contrato)
     print(resultado)
+
 
 if __name__ == "__main__":
     main()
