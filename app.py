@@ -22,7 +22,6 @@ def iniciar():
 def executar_em_thread(contrato):
     resultado = executar_contrato(contrato)
 
-    # atualização SEGURA da interface
     root.after(0, lambda: finalizar(resultado))
 
 def finalizar(mensagem):
