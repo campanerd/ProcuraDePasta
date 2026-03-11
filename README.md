@@ -1,7 +1,5 @@
 # Busca e Download de Contratos via SFTP
 
-## Descrição
-
 Este projeto automatiza a busca, download e compactação de documentos armazenados em um servidor SFTP.
 O usuário informa apenas o **número do contrato**, e o sistema localiza automaticamente a pasta correspondente no servidor, realiza o download de todos os arquivos e gera um **arquivo .zip** contendo os documentos.
 
