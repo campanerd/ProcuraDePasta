@@ -1,12 +1,12 @@
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import messagebox
 import threading
 from main import executar_contrato, executar_contrato_fast
 
-modo_execucao = None 
-entry = None
-botao = None
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
+modo_execucao = None 
 
 nomes_modo = {
     "normal": "Digitos finais do contrato",
@@ -14,26 +14,30 @@ nomes_modo = {
 }
 
 def selecionar_opcao(modo):
-    global modo_execucao, entry, botao
+    global modo_execucao
     modo_execucao = modo
 
     limpar_frame_inferior()
 
-    tk.Label(frame_inferior, text="Contrato").pack(pady=5)
+    ctk.CTkLabel(frame_inferior, text="Contrato").pack(pady=5)
 
-    entry = tk.Entry(frame_inferior, width=30)
-    entry.pack()
+    entry_input = ctk.CTkEntry(frame_inferior, width=200)
+    entry_input.pack()
 
-    botao = tk.Button(frame_inferior, text="Baixar", command=iniciar)
-    botao.pack(pady=10)
+    botao_download = ctk.CTkButton(
+        frame_inferior,
+        text="Baixar",
+        command=lambda: iniciar(entry_input, botao_download)
+    )
+    botao_download.pack(pady=10)
 
-    status.config(text=f"Modo selecionado: {nomes_modo[modo]}")
+    status.configure(text=f"Modo selecionado: {nomes_modo[modo]}")
 
 def limpar_frame_inferior():
     for widget in frame_inferior.winfo_children():
         widget.destroy()
 
-def iniciar():
+def iniciar(entry, botao):
     contrato = entry.get().strip()
 
     if not contrato:
@@ -44,68 +48,65 @@ def iniciar():
         messagebox.showwarning("Aviso", "Selecione uma opção")
         return
 
-    status.config(text="Processando...")
-    botao.config(state="disabled")
+    status.configure(text="Processando...")
+    botao.configure(state="disabled")
 
     if modo_execucao == "normal":
-        thread = threading.Thread(
-            target=executar_em_thread,
-            args=(contrato,),
-            daemon=True
-        )
+        target_func = executar_contrato
     else:
-        thread = threading.Thread(
-            target=executar_em_thread_fast,
-            args=(contrato,),
-            daemon=True
-        )
+        target_func = executar_contrato_fast
+
+    thread = threading.Thread(
+        target=executar_em_thread,
+        args=(target_func, contrato, botao),
+        daemon=True
+    )
 
     thread.start()
 
 
-def executar_em_thread(contrato):
-    resultado = executar_contrato(contrato)
-    root.after(0, lambda: finalizar(resultado))
+def executar_em_thread(func, contrato, botao):
+    try:
+        resultado = func(contrato)
+    except Exception as e:
+        resultado = f"Erro: {str(e)}"
+
+    root.after(0, lambda: finalizar(resultado, botao))
 
 
-def executar_em_thread_fast(contrato):
-    resultado = executar_contrato_fast(contrato)
-    root.after(0, lambda: finalizar(resultado))
-
-
-def finalizar(mensagem):
-    status.config(text=mensagem)
-    botao.config(state="normal")
+def finalizar(mensagem, botao):
+    status.configure(text=mensagem)
+    botao.configure(state="normal")
 
 
 #janela
-root = tk.Tk()
+root = ctk.CTk()
 root.title("Download SFTP")
 root.geometry("450x280")
 
 #frame superior
 
-frame_button = tk.Frame(root)
+frame_button = ctk.CTkFrame(root)
 frame_button.pack(pady=10)
 
-botao1 = tk.Button(frame_button, text="ESPECÍFICO", width=15, command=lambda: selecionar_opcao("normal"))
+botao1 = ctk.CTkButton(frame_button, text="ESPECÍFICO", width=15, command=lambda: selecionar_opcao("normal"))
 botao1.pack(side="left", padx=5)
 
-botao2 = tk.Button(frame_button, text="RÁPIDO", width=15, command=lambda: selecionar_opcao("fast"))
+botao2 = ctk.CTkButton(frame_button, text="RÁPIDO", width=15, command=lambda: selecionar_opcao("fast"))
 botao2.pack(side="left", padx=5)
 
 #frame inferior
 
-frame_inferior = tk.Frame(root)
-frame_inferior.pack(expand=True)
+frame_inferior = ctk.CTkFrame(root)
+frame_inferior.pack(expand=True, fill="both")
 
-tk.Label(
+ctk.CTkLabel(
     frame_inferior,
     text="Selecione uma opção acima",
-    fg="gray"
+    text_color="gray"
 ).pack(pady=20)
 
-status = tk.Label(
+status = ctk.CTkLabel(
     root,
     text="",
     wraplength=420,
@@ -113,7 +114,7 @@ status = tk.Label(
 )
 status.pack(pady=5)
 
-tk.Label(
+ctk.CTkLabel(
     root,
     text="Desenvolvido por Davi Campaner"
 ).pack(side="bottom", pady=5)
