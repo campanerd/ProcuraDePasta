@@ -21,12 +21,14 @@ def selecionar_opcao(modo):
 
     ctk.CTkLabel(frame_inferior, text="Contrato").pack(pady=5)
 
-    entry_input = ctk.CTkEntry(frame_inferior, width=200)
+    entry_input = ctk.CTkEntry(frame_inferior, width=200, height=35, placeholder_text="Digite o contrato...")
     entry_input.pack()
 
     botao_download = ctk.CTkButton(
         frame_inferior,
         text="Baixar",
+        height=35,
+        corner_radius=8,
         command=lambda: iniciar(entry_input, botao_download)
     )
     botao_download.pack(pady=10)
@@ -82,22 +84,29 @@ def finalizar(mensagem, botao):
 #janela
 root = ctk.CTk()
 root.title("Download SFTP")
-root.geometry("450x280")
+root.geometry("450x300")
 
 #frame superior
 
 frame_button = ctk.CTkFrame(root)
 frame_button.pack(pady=10)
 
-botao1 = ctk.CTkButton(frame_button, text="ESPECÍFICO", width=15, command=lambda: selecionar_opcao("normal"))
+botao1 = ctk.CTkButton(frame_button, text="ESPECÍFICO", width=140, height=35, corner_radius=8, command=lambda: selecionar_opcao("normal"))
 botao1.pack(side="left", padx=5)
 
-botao2 = ctk.CTkButton(frame_button, text="RÁPIDO", width=15, command=lambda: selecionar_opcao("fast"))
+botao2 = ctk.CTkButton(frame_button, text="RÁPIDO", width=140, height=35, corner_radius=8, command=lambda: selecionar_opcao("fast"))
 botao2.pack(side="left", padx=5)
+
+#titulo
+ctk.CTkLabel(
+    root,
+    text="Download de Contratos",
+    font=("Arial", 20, "bold")
+).pack(pady=(10, 5))
 
 #frame inferior
 
-frame_inferior = ctk.CTkFrame(root)
+frame_inferior = ctk.CTkFrame(root, corner_radius=10)
 frame_inferior.pack(expand=True, fill="both")
 
 ctk.CTkLabel(
@@ -110,7 +119,9 @@ status = ctk.CTkLabel(
     root,
     text="",
     wraplength=420,
-    justify="left"
+    text_color="gray",
+    justify="left",
+    font=("Arial", 12)
 )
 status.pack(pady=5)
 
