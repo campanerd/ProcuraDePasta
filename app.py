@@ -89,7 +89,7 @@ root.geometry("450x300")
 #frame superior
 
 frame_button = ctk.CTkFrame(root)
-frame_button.pack(pady=10)
+frame_button.pack(pady=(10, 5))
 
 botao1 = ctk.CTkButton(frame_button, text="ESPECÍFICO", width=140, height=35, corner_radius=8, command=lambda: selecionar_opcao("normal"))
 botao1.pack(side="left", padx=5)
