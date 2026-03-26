@@ -99,6 +99,7 @@ def executar_contrato_fast(contrato: str) -> str:
         transport.close()
         if pasta_local.exists():
             shutil.rmtree(pasta_local)
+            
 
 def main():
     contrato = input("Qual o contrato? ").strip()
