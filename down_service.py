@@ -30,7 +30,7 @@ def baixar_recursivo(sftp, remoto, local, root_call=True):
                 sftp,
                 remoto_item,
                 local_item,
-                root_call=False  # 🔥 evita duplicar \\?\
+                root_call=False 
             )
         else:
             try:
